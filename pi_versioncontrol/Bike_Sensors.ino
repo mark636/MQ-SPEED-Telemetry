@@ -11,7 +11,6 @@
 #include <Adafruit_LIS2MDL.h>
 #include <AS5600.h>
 
-/////////////GITHUB PUSH//////////////////////////////
 
 ////libraries stuff
 Adafruit_LIS2MDL mag = Adafruit_LIS2MDL(12345);
