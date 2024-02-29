@@ -12,7 +12,7 @@
 #include <AS5600.h>
 
 /////////////GITHUB PUSH//////////////////////////////
-//////NEW CHANGES////
+
 ////libraries stuff
 Adafruit_LIS2MDL mag = Adafruit_LIS2MDL(12345);
 Adafruit_LSM303_Accel_Unified accel = Adafruit_LSM303_Accel_Unified(54321);
