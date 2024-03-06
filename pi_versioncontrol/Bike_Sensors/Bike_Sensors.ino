@@ -41,7 +41,7 @@ DFRobot_BME680_I2C bme(0x77);  //I2C BME680 ID
 
 unsigned long time_l;            // Calculates the time between each sector of the wheel. Time of the magnets in the left wheel
 unsigned long time_r;            // Calculates the time between each sector of the wheel. Time of the magnets in the right wheel 
-unsigned long time_c;            // Calculates the time between each sector of the wheel. Time of the magnets in the centre wheel 
+unsigned long time_c;          // Calculates the time between each sector of the wheel. Time of the magnets in the centre wheel 
 unsigned long time_cr;           // Calculates the time between each sector of the wheel. Time of the magnets in the crank wheel 
 unsigned long time_shaft;            // Calculates the time between each sector of the wheel. Time of the magnets in the centre wheel 
 unsigned long time_output;
@@ -56,9 +56,20 @@ float RPM_R;                    // RPM of the right wheel
 float RPM_C;                   // RPM of the centre wheel
 float RPM_CRANK;              // RPM of the crank wheel
 float RPM_SHAFT;              // RPM of the gear shaft
+float average_rpm;            // Average rpm of 3 wheels
 float total_speed;           // total speed if the bike 
+float some_constant_from_gear_ratio;  // placeholder for gearratio constant
 int samples = 0; 
 int x = 0; 
+int priority_wheel_int = 1;
+struct ints_struct{
+  int left;
+  int right;
+  int center;
+  int shaft;
+  int crank;
+  int priority;
+};
 
 /////////////////////////////////////////////////STEERING ANGLE VARIABLES///////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -134,6 +145,72 @@ void IRAM_ATTR gear_shaft(){
   prev_shaft = micros();
 }
 
+// priority index: center = 1, left = 2, right = 3, all wheels broken = 4
+ints_struct compare_values(float left_wheel, float right_wheel, float center_wheel, float shaft, float crank, int priority_wheel){
+  int error_margin = 10;
+  int left_status;
+  int right_status;
+  int center_status;
+  int shaft_status;
+  int crank_status;
+  float priority_rpm;
+  int new_priority_wheel;
+
+  // choose wheel to become leader
+  if(priority_wheel == 1){
+    priority_rpm = center_wheel;
+  }
+  if(priority_wheel == 2){
+    priority_rpm = left_wheel;
+  }
+  if(priority_wheel == 3){
+    priority_rpm = right_wheel;
+  }
+  
+  // // compare values and determine, 1 is error and 0 is working
+
+  if(left_wheel>(priority_rpm + error_margin) || (priority_rpm - error_margin) < left_wheel){
+    left_status = 1;
+  } else{
+    left_status = 0;
+  }
+
+  if(right_wheel>(priority_rpm + error_margin) || (priority_rpm - error_margin) < right_wheel){
+    right_status = 1;
+  } else{
+    right_status = 0;
+  }
+
+  if(center_wheel>(priority_rpm + error_margin) || (priority_rpm - error_margin) < center_wheel){
+    center_status = 1;
+  } else{
+    center_status = 0;
+  }
+
+  if(shaft>((priority_rpm*some_constant_from_gear_ratio) + error_margin) || (priority_rpm*some_constant_from_gear_ratio - error_margin) < shaft){
+    shaft_status = 1;
+  } else{
+    shaft_status = 0;
+
+  }if(crank>(priority_rpm*some_constant_from_gear_ratio + error_margin) || (priority_rpm*some_constant_from_gear_ratio - error_margin) < crank){
+    crank_status = 1;
+  } else{
+    crank_status = 0;
+  }
+
+  if(left_status == 1 && right_status == 1 && shaft == 1 && crank == 1){
+    new_priority_wheel = 2;
+  } else if(center_status == 1 && right_status == 1 && shaft == 1 && crank == 1){
+    new_priority_wheel = 3;
+  } else if(center_status == 1 && left_status == 1 && shaft == 1 && crank == 1){
+    new_priority_wheel = 4;
+  } else{
+    new_priority_wheel = 1;
+  }
+
+  return {left_status, right_status, center_status, shaft_status, crank_status, new_priority_wheel};
+}
+
 
 ////////////////////////////////////////////////////SETUP//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -162,51 +239,51 @@ void setup() {
 ///////////////////////////////////////////TEMPERATURE SETUP/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
  
-  uint8_t rslt = 1;
-  while(!Serial);
-  rslt = bme.begin();
-  Serial.println("BME WORKING");
-  bme.startConvert();
-  bme.update();
+  // uint8_t rslt = 1;
+  // while(!Serial);
+  // rslt = bme.begin();
+  // Serial.println("BME WORKING");
+  // bme.startConvert();
+  // bme.update();
 
 ///////////////////////////////////////////magnetometer/////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//magnetometer
-  mag.begin();
-  mag.enableAutoRange(true);
-  //accelerometer
-  accel.begin();
+// //magnetometer
+//   mag.begin();
+//   mag.enableAutoRange(true);
+//   //accelerometer
+//   accel.begin();
 
- //////////////////////////////////////STEERING ANGLE SETUP/////////////////////////////////////////
- ////////////////////////////////////////////////////////////////////////////////////
+//  //////////////////////////////////////STEERING ANGLE SETUP/////////////////////////////////////////
+//  ////////////////////////////////////////////////////////////////////////////////////
 
- as5600.begin(4);
+//  as5600.begin(4);
 
+// }
 }
-
 ///////////////////////////////////////////MAIN////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void loop() {
   
-  steering_angle=as5600.rawAngle()/11.37777; //////conversion to degrees
-  if(steering_angle>180){
-    steering_angle=-360+steering_angle;
-  }         //////setting negative angles
-  if(steering_angle>steering_angle_max){
-    steering_angle_max=steering_angle;
-  } ///capturing max value
-  if(steering_angle<steering_angle_min){
-    steering_angle_min=steering_angle;
-  } ///capturing min value
-  steering_angle_center=(steering_angle_max+steering_angle_min)/2; ////calculating center
+  // steering_angle=as5600.rawAngle()/11.37777; //////conversion to degrees
+  // if(steering_angle>180){
+  //   steering_angle=-360+steering_angle;
+  // }         //////setting negative angles
+  // if(steering_angle>steering_angle_max){
+  //   steering_angle_max=steering_angle;
+  // } ///capturing max value
+  // if(steering_angle<steering_angle_min){
+  //   steering_angle_min=steering_angle;
+  // } ///capturing min value
+  // steering_angle_center=(steering_angle_max+steering_angle_min)/2; ////calculating center
 
 
   
-  sensors_event_t event; //declare event
+  // sensors_event_t event; //declare event
 
-  accel.getEvent(&event); //capture accelerometer data
+  // accel.getEvent(&event); //capture accelerometer data
     
   
   RPM_L = (60000000.00/(time_l*Magnet_Number));          // RPM left
@@ -217,10 +294,7 @@ void loop() {
 
   //Calculates the cadence of crank 
   //Cadence = (RPM_CRANK*wheel_circumference/16.6670)/(3.14*(diameter +(2 * tire_size)) * (chainring/cog))
-  
-  ////////////////////////////////////Calculates the total Speed////////////////////////////////////////////////////////////////////////////////////////////////////////// 
-  
-  total_speed = ((RPM_L + RPM_R + RPM_C)/3)*wheel_circumference/16.6670; 
+
   
   ///////////////////////////////////Adds value to running average/////////////////////////////////////////////////////////////////
   
@@ -229,87 +303,208 @@ void loop() {
   RPM_C_RA.addValue(RPM_C);           // Adds value to running average wheel centre
   RPM_CRANK_RA.addValue(RPM_CRANK);  // Adds value to runing average wheel crank
   RPM_SHAFT_RA.addValue(RPM_SHAFT); 
+  average_rpm = (RPM_L_RA.getAverage() + RPM_R_RA.getAverage() + RPM_C_RA.getAverage())/3;
+
+
+  ////////////////////////////////////Calculates the total Speed////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+  total_speed = (average_rpm*wheel_circumference)/16.6670; 
 
   ///////////////////////////////////Read AIR QUALITY sensor///////////////////////////////////////////////////////////////////////////////////////////////
   
-    if(millis()-lastRead>1000){
-      bme.startConvert();
-      bme.update();
-      Temperature=bme.readTemperature() / 100, 2;
-      Humidity=bme.readHumidity() / 1000, 2;
-      Pressure=bme.readPressure();
-      lastRead=millis();
-     }
+    // if(millis()-lastRead>1000){
+    //   bme.startConvert();
+    //   bme.update();
+    //   Temperature=bme.readTemperature() / 100, 2;
+    //   Humidity=bme.readHumidity() / 1000, 2;
+    //   Pressure=bme.readPressure();
+    //   lastRead=millis();
+    //  }
 
-       mag.getEvent(&event); //capture magnetometer data
+    //    mag.getEvent(&event); //capture magnetometer data
 
-    //CALCULATE HEADING from magnetometer data
-    float heading = (atan2(event.magnetic.y,event.magnetic.x) * 180) / 3.14159;
-     if (heading < 0)
-     {
-     heading = 360 + heading;
-    }
+    // //CALCULATE HEADING from magnetometer data
+    // float heading = (atan2(event.magnetic.y,event.magnetic.x) * 180) / 3.14159;
+    //  if (heading < 0)
+    //  {
+    //  heading = 360 + heading;
+    // }
   
   //////////////////////////////////////////////Print to screen///////////////////////////////////////////////////////////////////////////
-  
+  // order in list should always go (left right center crank shaft)
   time_output = millis()-prev_output;
    if (time_output > print_frequency){
    prev_output = millis();
-    if(RPM_L_RA.getAverage()<0 || RPM_L_RA.getAverage()>10000){
-      Serial.print(0);
-    } else {
-      Serial.print(RPM_L_RA.getAverage(),2);     //Printing RPM value for Left wheel 
-    }
-    Serial.print(",");
-    if(RPM_R_RA.getAverage()<0 || RPM_R_RA.getAverage()>10000){
-      Serial.print(0);
-    } else{
-      Serial.print(RPM_R_RA.getAverage(),2);     //Printing RPM value for right wheel
-    }
-    Serial.print(",");
-    if(RPM_C_RA.getAverage()<0 || RPM_C_RA.getAverage()>10000){
-      Serial.print(0);
-    } else {
-      Serial.print(RPM_C_RA.getAverage(),2);    // Printing RPM value for centre wheel
-    }
-    Serial.print(",");
-    if(RPM_CRANK_RA.getAverage()<=0 || RPM_CRANK_RA.getAverage()>20000){
-      Serial.print(0);
-    } else {
-      Serial.print(RPM_CRANK_RA.getAverage(),2); // Printing RPM value for crank wheel
-    }
-    Serial.print(",");
-    if(RPM_SHAFT_RA.getAverage()<0 || RPM_SHAFT_RA.getAverage()>10000){
-      Serial.print(0);
-    } else {
-      Serial.print(RPM_SHAFT_RA.getAverage(),2);     //Printing RPM value for gear shaft 
-    }
-    Serial.print(",");
-    if(total_speed<0 || total_speed>10000){
-      Serial.print(0);
-    } else {
-      Serial.print(total_speed);  // Printing total speed
-    }
-    Serial.print(",");
-    Serial.print(Temperature);  //Printing Temperature 
-    Serial.print(",");
-    Serial.print(Humidity);    // Printing Humidity 
-    Serial.print(",");
-    Serial.print(Pressure); // Printing Pressure
-    //print accelerometer
-    Serial.print(event.acceleration.x); 
-    Serial.print(",");
-    Serial.print(event.acceleration.y); 
-    Serial.print(",");
-    Serial.print(event.acceleration.z); 
-    Serial.print(",");
-    //print magnetometer
-    Serial.print(event.magnetic.x);
-    Serial.print(","); 
-    Serial.print(event.magnetic.y); 
-    Serial.print(",");
-    Serial.print(event.magnetic.z);
-    Serial.print(",");
-    Serial.println(steering_angle-steering_angle_center); 
+   ints_struct comparison_code = compare_values(RPM_L_RA.getAverage(), RPM_R_RA.getAverage(), RPM_C_RA.getAverage(),RPM_CRANK_RA.getAverage(),RPM_SHAFT_RA.getAverage(),priority_wheel_int);
+   priority_wheel_int = comparison_code.priority;
+   if(comparison_code.center==1){
+    Serial.print("center wheel error");
+   } else{
+    Serial.print(RPM_C_RA.getAverage(),2);
+   }
+   Serial.print(",");
+   if(comparison_code.left==1){
+    Serial.print("left wheel error");
+   } else{
+    Serial.print(RPM_L_RA.getAverage(),2);
+   }
+   Serial.print(",");
+   if(comparison_code.right==1){
+    Serial.print("right wheel error");
+   } else{
+    Serial.print(RPM_R_RA.getAverage(),2);
+   }
+   Serial.print(",");
+   if(comparison_code.crank==1){
+    Serial.print("crank error");
+   } else{
+    Serial.print(RPM_CRANK_RA.getAverage(),2);
+   }
+   Serial.print(",");
+   if(comparison_code.shaft==1){
+    Serial.print("shaft error");
+   } else{
+    Serial.print(RPM_SHAFT_RA.getAverage(),2);
+   }
+   Serial.print(",");
+   Serial.println(total_speed);
+
+
+
+
+   //// update to include new compare_values() output including shaft and crank error check and priority change
+  //  if(compare_values(RPM_L_RA.getAverage(), RPM_R_RA.getAverage(), RPM_C_RA.getAverage()) == 3){
+  //   Serial.print("left wheel error");
+  //   Serial.print(",");
+  //   Serial.print("right wheel error");
+  //   Serial.print(",");
+  //   Serial.print(RPM_C_RA.getAverage(),2);    // Printing RPM value for centre wheel
+  //   Serial.print(",");
+  //   Serial.print(RPM_CRANK_RA.getAverage(),2); // Printing RPM value for crank wheel
+  //   Serial.print(",");
+  //   Serial.print(RPM_SHAFT_RA.getAverage(),2);     //Printing RPM value for gear shaft 
+  //   Serial.print(",");
+  //   Serial.println(total_speed);  // Printing total speed
+  //  } else if(compare_values(RPM_L_RA.getAverage(), RPM_R_RA.getAverage(), RPM_C_RA.getAverage()) == 1){
+  //   Serial.print("left wheel error");
+  //   Serial.print(",");
+  //   Serial.print(RPM_R_RA.getAverage(),2);     //Printing RPM value for right wheel
+  //   Serial.print(",");
+  //   Serial.print(RPM_C_RA.getAverage(),2);    // Printing RPM value for centre wheel
+  //   Serial.print(",");
+  //   Serial.print(RPM_CRANK_RA.getAverage(),2); // Printing RPM value for crank wheel
+  //   Serial.print(",");
+  //   Serial.print(RPM_SHAFT_RA.getAverage(),2);     //Printing RPM value for gear shaft 
+  //   Serial.print(",");
+  //   Serial.println(total_speed);  // Printing total speed
+  //  } else{
+  //   Serial.print(RPM_L_RA.getAverage(),2);     //Printing RPM value for Left wheel 
+  //   Serial.print(",");
+  //   Serial.print("right wheel error");     //Printing RPM value for right wheel
+  //   Serial.print(",");
+  //   Serial.print(RPM_C_RA.getAverage(),2);    // Printing RPM value for centre wheel
+  //   Serial.print(",");
+  //   Serial.print(RPM_CRANK_RA.getAverage(),2); // Printing RPM value for crank wheel
+  //   Serial.print(",");
+  //   Serial.print(RPM_SHAFT_RA.getAverage(),2);     //Printing RPM value for gear shaft 
+  //   Serial.print(",");
+  //   Serial.println(total_speed);  // Printing total speed
+
+
+
+
+
+
+
+
+
+
+
+
+    // Printing total speed
+    // if(RPM_L_RA.getAverage() == "inf"){
+    //   Serial.print(0);
+    // } else if(RPM_L_RA.getAverage()<0 || RPM_L_RA.getAverage()>10000 && ){
+    //   Serial.print("e");
+    // } else {
+    //   Serial.print(RPM_L_RA.getAverage(),2);     //Printing RPM value for Left wheel 
+    // }
+    // Serial.print(",");
+    // if(RPM_R_RA.getAverage() == "inf"){
+    //   Serial.print(0);
+    // } else if(RPM_R_RA.getAverage()<0 || RPM_R_RA.getAverage()>10000){
+    //   Serial.print("e");
+    // } else{
+    //   Serial.print(RPM_R_RA.getAverage(),2);     //Printing RPM value for right wheel
+    // }
+    // Serial.print(",");
+    // if(RPM_C_RA.getAverage() == "inf"){
+    //   Serial.print(0);
+    // } else if(RPM_C_RA.getAverage()<0 || RPM_C_RA.getAverage()>10000){
+    //   Serial.print("e");
+    // } else {
+    //   Serial.print(RPM_C_RA.getAverage(),2);    // Printing RPM value for centre wheel
+    // }
+    // Serial.print(",");
+    // if(RPM_CRANK_RA.getAverage() == "inf"){
+    //   Serial.print(0);
+    // } else if(RPM_CRANK_RA.getAverage()<=0 || RPM_CRANK_RA.getAverage()>10000){
+    //   Serial.print("e");
+    // } else {
+    //   Serial.print(RPM_CRANK_RA.getAverage(),2); // Printing RPM value for crank wheel
+    // }
+    // Serial.print(",");
+    // if(RPM_SHAFT_RA.getAverage() == "inf"){
+    //   Serial.print(0);
+    // } else if(RPM_SHAFT_RA.getAverage()<0 || RPM_SHAFT_RA.getAverage()>10000){
+    //   Serial.print("e");
+    // } else {
+    //   Serial.print(RPM_SHAFT_RA.getAverage(),2);     //Printing RPM value for gear shaft 
+    // }
+    // Serial.print(",");
+    // if(total_speed == "inf"){
+    //   Serial.print(0);
+    // } else if(total_speed<0 || total_speed>10000){
+    //   Serial.println("e");
+    // } else {
+    //   Serial.println(total_speed);  // Printing total speed
+    // }
+
+    // if(RPM_L_RA.getAverage()<0 || RPM_L_RA.getAverage()>10000){
+    //   Serial.print("e");
+    // } else {
+    //   Serial.print(RPM_L_RA.getAverage(),2);     //Printing RPM value for Left wheel 
+    // }
+    // Serial.print(",");
+    // if(RPM_R_RA.getAverage()<0 || RPM_R_RA.getAverage()>10000){
+    //   Serial.print("e");
+    // } else{
+    //   Serial.print(RPM_R_RA.getAverage(),2);     //Printing RPM value for right wheel
+    // }
+    // Serial.print(",");
+    // if(RPM_C_RA.getAverage()<0 || RPM_C_RA.getAverage()>10000){
+    //   Serial.print("e");
+    // } else {
+    //   Serial.print(RPM_C_RA.getAverage(),2);    // Printing RPM value for centre wheel
+    // }
+    // Serial.print(",");
+    // if(RPM_CRANK_RA.getAverage()<=0 || RPM_CRANK_RA.getAverage()>10000){
+    //   Serial.print("e");
+    // } else {
+    //   Serial.print(RPM_CRANK_RA.getAverage(),2); // Printing RPM value for crank wheel
+    // }
+    // Serial.print(",");
+    // if(RPM_SHAFT_RA.getAverage()<0 || RPM_SHAFT_RA.getAverage()>10000){
+    //   Serial.print("e");
+    // } else {
+    //   Serial.print(RPM_SHAFT_RA.getAverage(),2);     //Printing RPM value for gear shaft 
+    // }
+    // Serial.print(",");
+    // if(total_speed<0 || total_speed>10000){
+    //   Serial.println("e");
+    // } else {
+    //   Serial.println(total_speed);  // Printing total speed
+    // }
   }
 }
+
+
