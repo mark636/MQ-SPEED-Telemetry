@@ -337,31 +337,31 @@ void loop() {
    ints_struct comparison_code = compare_values(RPM_L_RA.getAverage(), RPM_R_RA.getAverage(), RPM_C_RA.getAverage(),RPM_CRANK_RA.getAverage(),RPM_SHAFT_RA.getAverage(),priority_wheel_int);
    priority_wheel_int = comparison_code.priority;
    if(comparison_code.center==1){
-    Serial.print("center wheel error");
+    Serial.print("");
    } else{
     Serial.print(RPM_C_RA.getAverage(),2);
    }
    Serial.print(",");
    if(comparison_code.left==1){
-    Serial.print("left wheel error");
+    Serial.print("");
    } else{
     Serial.print(RPM_L_RA.getAverage(),2);
    }
    Serial.print(",");
    if(comparison_code.right==1){
-    Serial.print("right wheel error");
+    Serial.print("");
    } else{
     Serial.print(RPM_R_RA.getAverage(),2);
    }
    Serial.print(",");
    if(comparison_code.crank==1){
-    Serial.print("crank error");
+    Serial.print("");
    } else{
     Serial.print(RPM_CRANK_RA.getAverage(),2);
    }
    Serial.print(",");
    if(comparison_code.shaft==1){
-    Serial.print("shaft error");
+    Serial.print("");
    } else{
     Serial.print(RPM_SHAFT_RA.getAverage(),2);
    }
