@@ -337,36 +337,46 @@ void loop() {
    ints_struct comparison_code = compare_values(RPM_L_RA.getAverage(), RPM_R_RA.getAverage(), RPM_C_RA.getAverage(),RPM_CRANK_RA.getAverage(),RPM_SHAFT_RA.getAverage(),priority_wheel_int);
    priority_wheel_int = comparison_code.priority;
    if(comparison_code.center==1){
-    Serial.print("");
+    Serial.print("'data':'unavailable'");
    } else{
+    Serial.print("'center_wheel_rpm':");
     Serial.print(RPM_C_RA.getAverage(),2);
    }
    Serial.print(",");
    if(comparison_code.left==1){
-    Serial.print("");
+    Serial.print("'data':'unavailable'");
    } else{
+    Serial.print("'left_wheel_rpm':");
     Serial.print(RPM_L_RA.getAverage(),2);
    }
    Serial.print(",");
    if(comparison_code.right==1){
-    Serial.print("");
+    Serial.print("'data':'unavailable'");
    } else{
+    Serial.print("'right_wheel_rpm':");
     Serial.print(RPM_R_RA.getAverage(),2);
    }
    Serial.print(",");
    if(comparison_code.crank==1){
-    Serial.print("");
+    Serial.print("'data':'unavailable'");
    } else{
+    Serial.print("'crank_rpm':");
     Serial.print(RPM_CRANK_RA.getAverage(),2);
    }
    Serial.print(",");
    if(comparison_code.shaft==1){
-    Serial.print("");
+    Serial.print("'data':'unavailable'");
    } else{
+    Serial.print("'shaft_rpm':");
     Serial.print(RPM_SHAFT_RA.getAverage(),2);
    }
    Serial.print(",");
-   Serial.println(total_speed);
+   if(total_speed==0.00){
+   Serial.print("'data':'unavailable'");
+   } else{
+    Serial.print("'total_speed':");
+    Serial.println(total_speed);
+   }
 
 
 
@@ -506,5 +516,3 @@ void loop() {
     // }
   }
 }
-
-

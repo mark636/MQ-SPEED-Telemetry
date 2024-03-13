@@ -36,17 +36,32 @@ class SensorDataProcessor:
                               "humidity","latitude","longitude","distance_to_finish"]
 
         # initialize serial read and expected ports
-        self.esphatch = serial.Serial('/dev/ttyUSB1', 115200, timeout=1)
-        self.esphatch.reset_input_buffer()
-        self.espbike = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
-        self.espbike.reset_input_buffer()
+        try: 
+            self.esphatch = serial.Serial('/dev/ttyUSB1', 115200, timeout=1)
+            self.esphatch.reset_input_buffer()
+        except:
+            self.esphatch = "none"
+        
+        try:
+            self.espbike = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
+            self.espbike.reset_input_buffer()
+        except:
+            self.espbike = "none"
+            
     
 
     def format_data(self):
         """This method reads the serials and joins them together as a string,
         before returning as a dictionary"""
-        esp_bike_raw = self.espbike.readline().decode('utf-8').rstrip()
-        esp_hatch_raw = self.esphatch.readline().decode('utf-8').rstrip()
+        try:
+            esp_bike_raw = self.espbike.readline().decode('utf-8').rstrip()
+        except:
+            esp_bike_raw = "'data': 'none'"
+        try:
+            esp_hatch_raw = self.esphatch.readline().decode('utf-8').rstrip()
+        except:
+            esp_hatch_raw = "'data': 'none'"
+            
         data_string = ''.join(("{",esp_bike_raw,",",esp_hatch_raw,"}"))
         data_dict = ast.literal_eval(data_string)
         return data_dict
