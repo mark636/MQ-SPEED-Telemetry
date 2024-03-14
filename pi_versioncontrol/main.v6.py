@@ -67,7 +67,9 @@ while True:
         
         now = datetime.now()
         current_time = now.strftime("%H:%M:%S")
-        writer.writerow([str(sensor_data_processor.process())])
+        data_stream = [str(sensor_data_processor.process())]
+        print(data_stream)
+        writer.writerow(data_stream)
        
        #///////////////////////////MAIN BIKE CALCULATIONS///////////////////////////
        #////////////////////////////////////////////////////////////////////////////

@@ -1,5 +1,6 @@
 import serial
 import ast
+import time
 
 class SensorDataProcessor:
     """Takes data from all the sensors and packages them for either data logging, 
@@ -42,21 +43,21 @@ class SensorDataProcessor:
         except:
             self.esphatch = "none"
         
-        try:
-            self.espbike = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
-            self.espbike.reset_input_buffer()
-        except:
-            self.espbike = "none"
+#         try:
+        self.espbike = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
+        self.espbike.reset_input_buffer()
+#         except:
+#             self.espbike = "none"
             
     
 
     def format_data(self):
         """This method reads the serials and joins them together as a string,
         before returning as a dictionary"""
-        try:
-            esp_bike_raw = self.espbike.readline().decode('utf-8').rstrip()
-        except:
-            esp_bike_raw = "'data': 'none'"
+#         try:
+        esp_bike_raw = self.espbike.readline().decode('utf-8').rstrip()
+#         except:
+#             esp_bike_raw = "'data': 'none'"
         try:
             esp_hatch_raw = self.esphatch.readline().decode('utf-8').rstrip()
         except:

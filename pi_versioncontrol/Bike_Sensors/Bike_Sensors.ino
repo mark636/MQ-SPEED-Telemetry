@@ -336,183 +336,90 @@ void loop() {
    prev_output = millis();
    ints_struct comparison_code = compare_values(RPM_L_RA.getAverage(), RPM_R_RA.getAverage(), RPM_C_RA.getAverage(),RPM_CRANK_RA.getAverage(),RPM_SHAFT_RA.getAverage(),priority_wheel_int);
    priority_wheel_int = comparison_code.priority;
-   if(comparison_code.center==1){
+//   if(comparison_code.center==1){
+//    Serial.print("'data':'unavailable'");
+//   } else{
+//    Serial.print("'center_wheel_rpm':");
+//    Serial.print(RPM_C_RA.getAverage(),2);
+//   }
+//   Serial.print(",");
+//   if(comparison_code.left==1){
+//    Serial.print("'data':'unavailable'");
+//   } else{
+//    Serial.print("'left_wheel_rpm':");
+//    Serial.print(RPM_L_RA.getAverage(),2);
+//   }
+//   Serial.print(",");
+//   if(comparison_code.right==1){
+//    Serial.print("'data':'unavailable'");
+//   } else{
+//    Serial.print("'right_wheel_rpm':");
+//    Serial.print(RPM_R_RA.getAverage(),2);
+//   }
+//   Serial.print(",");
+//   if(comparison_code.crank==1){
+//    Serial.print("'data':'unavailable'");
+//   } else{
+//    Serial.print("'crank_rpm':");
+//    Serial.print(RPM_CRANK_RA.getAverage(),2);
+//   }
+//   Serial.print(",");
+//   if(comparison_code.shaft==1){
+//    Serial.print("'data':'unavailable'");
+//   } else{
+//    Serial.print("'shaft_rpm':");
+//    Serial.print(RPM_SHAFT_RA.getAverage(),2);
+//   }
+//   Serial.print(",");
+//   if(total_speed==0.00){
+//   Serial.print("'data':'unavailable'");
+//   } else{
+//    Serial.print("'total_speed':");
+//    Serial.println(total_speed);
+//   }
+
+
+
+    if(RPM_C_RA.getAverage()<0 || RPM_C_RA.getAverage()>10000){
     Serial.print("'data':'unavailable'");
-   } else{
+    } else {
     Serial.print("'center_wheel_rpm':");
-    Serial.print(RPM_C_RA.getAverage(),2);
-   }
-   Serial.print(",");
-   if(comparison_code.left==1){
+    Serial.print(RPM_C_RA.getAverage(),2);    // Printing RPM value for centre wheel
+    }
+    Serial.print(",");
+    if(RPM_R_RA.getAverage()<0 || RPM_R_RA.getAverage()>10000){
     Serial.print("'data':'unavailable'");
-   } else{
-    Serial.print("'left_wheel_rpm':");
-    Serial.print(RPM_L_RA.getAverage(),2);
-   }
-   Serial.print(",");
-   if(comparison_code.right==1){
-    Serial.print("'data':'unavailable'");
-   } else{
+    } else{
     Serial.print("'right_wheel_rpm':");
-    Serial.print(RPM_R_RA.getAverage(),2);
-   }
-   Serial.print(",");
-   if(comparison_code.crank==1){
+    Serial.print(RPM_R_RA.getAverage(),2);    //Printing RPM value for right wheel
+    }
+    Serial.print(",");
+    if(RPM_L_RA.getAverage()<0 || RPM_L_RA.getAverage()>10000){
     Serial.print("'data':'unavailable'");
-   } else{
+    } else {
+    Serial.print("'left_wheel_rpm':");
+    Serial.print(RPM_L_RA.getAverage(),2);     //Printing RPM value for Left wheel 
+    }
+    Serial.print(",");
+    if(RPM_CRANK_RA.getAverage()<=0 || RPM_CRANK_RA.getAverage()>10000){
+    Serial.print("'data':'unavailable'");
+    } else {
     Serial.print("'crank_rpm':");
-    Serial.print(RPM_CRANK_RA.getAverage(),2);
-   }
-   Serial.print(",");
-   if(comparison_code.shaft==1){
+    Serial.print(RPM_CRANK_RA.getAverage(),2); // Printing RPM value for crank wheel
+    }
+    Serial.print(",");
+    if(RPM_SHAFT_RA.getAverage()<0 || RPM_SHAFT_RA.getAverage()>10000){
     Serial.print("'data':'unavailable'");
-   } else{
+    } else {
     Serial.print("'shaft_rpm':");
-    Serial.print(RPM_SHAFT_RA.getAverage(),2);
-   }
-   Serial.print(",");
-   if(total_speed==0.00){
-   Serial.print("'data':'unavailable'");
-   } else{
+    Serial.print(RPM_SHAFT_RA.getAverage(),2);    //Printing RPM value for gear shaft 
+    }
+    Serial.print(",");
+    if(total_speed<0 || total_speed>10000){
+    Serial.println("'data':'unavailable'");
+    } else {
     Serial.print("'total_speed':");
-    Serial.println(total_speed);
-   }
-
-
-
-
-   //// update to include new compare_values() output including shaft and crank error check and priority change
-  //  if(compare_values(RPM_L_RA.getAverage(), RPM_R_RA.getAverage(), RPM_C_RA.getAverage()) == 3){
-  //   Serial.print("left wheel error");
-  //   Serial.print(",");
-  //   Serial.print("right wheel error");
-  //   Serial.print(",");
-  //   Serial.print(RPM_C_RA.getAverage(),2);    // Printing RPM value for centre wheel
-  //   Serial.print(",");
-  //   Serial.print(RPM_CRANK_RA.getAverage(),2); // Printing RPM value for crank wheel
-  //   Serial.print(",");
-  //   Serial.print(RPM_SHAFT_RA.getAverage(),2);     //Printing RPM value for gear shaft 
-  //   Serial.print(",");
-  //   Serial.println(total_speed);  // Printing total speed
-  //  } else if(compare_values(RPM_L_RA.getAverage(), RPM_R_RA.getAverage(), RPM_C_RA.getAverage()) == 1){
-  //   Serial.print("left wheel error");
-  //   Serial.print(",");
-  //   Serial.print(RPM_R_RA.getAverage(),2);     //Printing RPM value for right wheel
-  //   Serial.print(",");
-  //   Serial.print(RPM_C_RA.getAverage(),2);    // Printing RPM value for centre wheel
-  //   Serial.print(",");
-  //   Serial.print(RPM_CRANK_RA.getAverage(),2); // Printing RPM value for crank wheel
-  //   Serial.print(",");
-  //   Serial.print(RPM_SHAFT_RA.getAverage(),2);     //Printing RPM value for gear shaft 
-  //   Serial.print(",");
-  //   Serial.println(total_speed);  // Printing total speed
-  //  } else{
-  //   Serial.print(RPM_L_RA.getAverage(),2);     //Printing RPM value for Left wheel 
-  //   Serial.print(",");
-  //   Serial.print("right wheel error");     //Printing RPM value for right wheel
-  //   Serial.print(",");
-  //   Serial.print(RPM_C_RA.getAverage(),2);    // Printing RPM value for centre wheel
-  //   Serial.print(",");
-  //   Serial.print(RPM_CRANK_RA.getAverage(),2); // Printing RPM value for crank wheel
-  //   Serial.print(",");
-  //   Serial.print(RPM_SHAFT_RA.getAverage(),2);     //Printing RPM value for gear shaft 
-  //   Serial.print(",");
-  //   Serial.println(total_speed);  // Printing total speed
-
-
-
-
-
-
-
-
-
-
-
-
-    // Printing total speed
-    // if(RPM_L_RA.getAverage() == "inf"){
-    //   Serial.print(0);
-    // } else if(RPM_L_RA.getAverage()<0 || RPM_L_RA.getAverage()>10000 && ){
-    //   Serial.print("e");
-    // } else {
-    //   Serial.print(RPM_L_RA.getAverage(),2);     //Printing RPM value for Left wheel 
-    // }
-    // Serial.print(",");
-    // if(RPM_R_RA.getAverage() == "inf"){
-    //   Serial.print(0);
-    // } else if(RPM_R_RA.getAverage()<0 || RPM_R_RA.getAverage()>10000){
-    //   Serial.print("e");
-    // } else{
-    //   Serial.print(RPM_R_RA.getAverage(),2);     //Printing RPM value for right wheel
-    // }
-    // Serial.print(",");
-    // if(RPM_C_RA.getAverage() == "inf"){
-    //   Serial.print(0);
-    // } else if(RPM_C_RA.getAverage()<0 || RPM_C_RA.getAverage()>10000){
-    //   Serial.print("e");
-    // } else {
-    //   Serial.print(RPM_C_RA.getAverage(),2);    // Printing RPM value for centre wheel
-    // }
-    // Serial.print(",");
-    // if(RPM_CRANK_RA.getAverage() == "inf"){
-    //   Serial.print(0);
-    // } else if(RPM_CRANK_RA.getAverage()<=0 || RPM_CRANK_RA.getAverage()>10000){
-    //   Serial.print("e");
-    // } else {
-    //   Serial.print(RPM_CRANK_RA.getAverage(),2); // Printing RPM value for crank wheel
-    // }
-    // Serial.print(",");
-    // if(RPM_SHAFT_RA.getAverage() == "inf"){
-    //   Serial.print(0);
-    // } else if(RPM_SHAFT_RA.getAverage()<0 || RPM_SHAFT_RA.getAverage()>10000){
-    //   Serial.print("e");
-    // } else {
-    //   Serial.print(RPM_SHAFT_RA.getAverage(),2);     //Printing RPM value for gear shaft 
-    // }
-    // Serial.print(",");
-    // if(total_speed == "inf"){
-    //   Serial.print(0);
-    // } else if(total_speed<0 || total_speed>10000){
-    //   Serial.println("e");
-    // } else {
-    //   Serial.println(total_speed);  // Printing total speed
-    // }
-
-    // if(RPM_L_RA.getAverage()<0 || RPM_L_RA.getAverage()>10000){
-    //   Serial.print("e");
-    // } else {
-    //   Serial.print(RPM_L_RA.getAverage(),2);     //Printing RPM value for Left wheel 
-    // }
-    // Serial.print(",");
-    // if(RPM_R_RA.getAverage()<0 || RPM_R_RA.getAverage()>10000){
-    //   Serial.print("e");
-    // } else{
-    //   Serial.print(RPM_R_RA.getAverage(),2);     //Printing RPM value for right wheel
-    // }
-    // Serial.print(",");
-    // if(RPM_C_RA.getAverage()<0 || RPM_C_RA.getAverage()>10000){
-    //   Serial.print("e");
-    // } else {
-    //   Serial.print(RPM_C_RA.getAverage(),2);    // Printing RPM value for centre wheel
-    // }
-    // Serial.print(",");
-    // if(RPM_CRANK_RA.getAverage()<=0 || RPM_CRANK_RA.getAverage()>10000){
-    //   Serial.print("e");
-    // } else {
-    //   Serial.print(RPM_CRANK_RA.getAverage(),2); // Printing RPM value for crank wheel
-    // }
-    // Serial.print(",");
-    // if(RPM_SHAFT_RA.getAverage()<0 || RPM_SHAFT_RA.getAverage()>10000){
-    //   Serial.print("e");
-    // } else {
-    //   Serial.print(RPM_SHAFT_RA.getAverage(),2);     //Printing RPM value for gear shaft 
-    // }
-    // Serial.print(",");
-    // if(total_speed<0 || total_speed>10000){
-    //   Serial.println("e");
-    // } else {
-    //   Serial.println(total_speed);  // Printing total speed
-    // }
+    Serial.println(total_speed); // Printing total speed
+    }
   }
 }
