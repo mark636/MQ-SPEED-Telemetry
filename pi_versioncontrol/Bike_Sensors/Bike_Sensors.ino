@@ -10,6 +10,12 @@
 #include <Adafruit_LSM303_U.h>
 #include <Adafruit_LIS2MDL.h>
 #include <AS5600.h>
+#define SERIAL_BUFFER_SIZE  1024
+#define RXD2 16
+#define TXD2 17
+
+String pi_data;
+String command;
 
 
 ////libraries stuff
@@ -71,6 +77,7 @@ struct ints_struct{
   int priority;
 };
 
+
 /////////////////////////////////////////////////STEERING ANGLE VARIABLES///////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -102,7 +109,7 @@ const int hall_pin5 = 26;      // Pin relates to gear shaft
 
 float wheel_circumference = 2.777; //Circumference of wheel 
 const int Magnet_Number = 8; // Number of magnets on the tone wheel
-const int print_frequency = 9; //milliseconds between serial.print
+const int print_frequency = 5; //milliseconds between serial.print
 
 ////////////////////////////////////////////INTERRUPT FUNCTIONS///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
@@ -219,6 +226,11 @@ ints_struct compare_values(float left_wheel, float right_wheel, float center_whe
 
 void setup() {
   Serial.begin(115200);
+  Serial.setTxBufferSize(SERIAL_BUFFER_SIZE);
+  Serial.setRxBufferSize(SERIAL_BUFFER_SIZE);
+  Serial2.begin(115200);
+  Serial2.setTxBufferSize(SERIAL_BUFFER_SIZE);
+  Serial2.setRxBufferSize(SERIAL_BUFFER_SIZE);
   //Serial2.begin(115200, SERIAL_8N1, 16, 17);
   pinMode(hall_pin, INPUT);       //Pin initialization
   pinMode(hall_pin2, INPUT);      //Pin initialization
@@ -258,7 +270,7 @@ void setup() {
 //  //////////////////////////////////////STEERING ANGLE SETUP/////////////////////////////////////////
 //  ////////////////////////////////////////////////////////////////////////////////////
 
-//  as5600.begin(4);
+  as5600.begin(4);
 
 // }
 }
@@ -267,17 +279,17 @@ void setup() {
 
 void loop() {
   
-  // steering_angle=as5600.rawAngle()/11.37777; //////conversion to degrees
-  // if(steering_angle>180){
-  //   steering_angle=-360+steering_angle;
-  // }         //////setting negative angles
-  // if(steering_angle>steering_angle_max){
-  //   steering_angle_max=steering_angle;
-  // } ///capturing max value
-  // if(steering_angle<steering_angle_min){
-  //   steering_angle_min=steering_angle;
-  // } ///capturing min value
-  // steering_angle_center=(steering_angle_max+steering_angle_min)/2; ////calculating center
+   steering_angle=as5600.rawAngle()/11.37777; //////conversion to degrees
+   if(steering_angle>180){
+     steering_angle=-360+steering_angle;
+   }         //////setting negative angles
+   if(steering_angle>steering_angle_max){
+     steering_angle_max=steering_angle;
+   } ///capturing max value
+   if(steering_angle<steering_angle_min){
+     steering_angle_min=steering_angle;
+   } ///capturing min value
+   steering_angle_center=(steering_angle_max+steering_angle_min)/2; ////calculating center
 
 
   
@@ -378,48 +390,70 @@ void loop() {
 //    Serial.println(total_speed);
 //   }
 
-
-
     if(RPM_C_RA.getAverage()<0 || RPM_C_RA.getAverage()>10000){
-    Serial.print("'data':'unavailable'");
+    Serial.print("'d':'u'");
     } else {
-    Serial.print("'center_wheel_rpm':");
-    Serial.print(RPM_C_RA.getAverage(),2);    // Printing RPM value for centre wheel
+    Serial.print("'c':");
+    Serial.print(RPM_C_RA.getAverage(),2);
     }
     Serial.print(",");
     if(RPM_R_RA.getAverage()<0 || RPM_R_RA.getAverage()>10000){
-    Serial.print("'data':'unavailable'");
+    Serial.print("'d':'u'");
     } else{
-    Serial.print("'right_wheel_rpm':");
-    Serial.print(RPM_R_RA.getAverage(),2);    //Printing RPM value for right wheel
+    Serial.print("'r':");
+    Serial.print(RPM_R_RA.getAverage(),2);
     }
     Serial.print(",");
     if(RPM_L_RA.getAverage()<0 || RPM_L_RA.getAverage()>10000){
-    Serial.print("'data':'unavailable'");
+    Serial.print("'d':'u'");
     } else {
-    Serial.print("'left_wheel_rpm':");
-    Serial.print(RPM_L_RA.getAverage(),2);     //Printing RPM value for Left wheel 
+    Serial.print("'l':");
+    Serial.print(RPM_L_RA.getAverage(),2);
+    //Printing RPM value for Left wheel 
     }
     Serial.print(",");
-    if(RPM_CRANK_RA.getAverage()<=0 || RPM_CRANK_RA.getAverage()>10000){
-    Serial.print("'data':'unavailable'");
-    } else {
-    Serial.print("'crank_rpm':");
-    Serial.print(RPM_CRANK_RA.getAverage(),2); // Printing RPM value for crank wheel
-    }
-    Serial.print(",");
+//    if(RPM_CRANK_RA.getAverage()<=0 || RPM_CRANK_RA.getAverage()>10000){
+//    Serial.println("'d':'u'");
+//    } else {
+//    Serial.print("'cr':");
+//    Serial.println(RPM_CRANK_RA.getAverage(),2); // Printing RPM value for crank wheel
+//    }
+//    Serial.print(",");
     if(RPM_SHAFT_RA.getAverage()<0 || RPM_SHAFT_RA.getAverage()>10000){
-    Serial.print("'data':'unavailable'");
+    Serial.print("'d':'u'");
     } else {
-    Serial.print("'shaft_rpm':");
+    Serial.print("'s':");
     Serial.print(RPM_SHAFT_RA.getAverage(),2);    //Printing RPM value for gear shaft 
     }
     Serial.print(",");
-    if(total_speed<0 || total_speed>10000){
-    Serial.println("'data':'unavailable'");
+    if(steering_angle<0 || steering_angle>10000){
+    Serial.println("'d':'u'");
     } else {
-    Serial.print("'total_speed':");
-    Serial.println(total_speed); // Printing total speed
+    Serial.print("'sa':");
+    Serial.println(steering_angle,2);    //Printing RPM value for gear shaft 
+    }
+    
+//    Serial.print(",");
+//    if(total_speed<0 || total_speed>10000){
+//    Serial.println("'data':'unavailable'");
+//    } else {
+//    Serial.print("'total_speed':");
+//    Serial.println(total_speed); // Printing total speed
+//    }
+
+    if(Serial2.available()>63){
+      command = Serial2.readStringUntil('\n');
+      command.trim();
+      if (command.equals("stop")) {
+        Serial.print("stop");
+        }
+      }
+    if(Serial.available()>63 && !Serial2.available()>0){
+      pi_data = Serial.readStringUntil('\n');
+      pi_data.trim();
+      delay(50);
+      Serial2.print(pi_data);
+      Serial2.println();
     }
   }
 }
