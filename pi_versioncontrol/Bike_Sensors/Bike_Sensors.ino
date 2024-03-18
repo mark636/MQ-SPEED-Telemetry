@@ -101,8 +101,8 @@ unsigned long lastRead=0;
 const int hall_pin = 12;         // Pin relates to wheel left 
 const int hall_pin2 = 13;        // Pin relates to wheel right 
 const int hall_pin3 = 14;      // Pin relates to wheel centre 
-const int hall_pin4 = 27;      // Pin relates to crank
-const int hall_pin5 = 26;      // Pin relates to gear shaft
+const int hall_pin4 = 27;      // Pin relates to gear shaft
+
 
 //////////////////////////////////////////////////// TWEAK variables///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -153,6 +153,7 @@ void IRAM_ATTR gear_shaft(){
 }
 
 // priority index: center = 1, left = 2, right = 3, all wheels broken = 4
+// not yet implemented, to be put in after melbourne
 ints_struct compare_values(float left_wheel, float right_wheel, float center_wheel, float shaft, float crank, int priority_wheel){
   int error_margin = 10;
   int left_status;
@@ -236,36 +237,17 @@ void setup() {
   pinMode(hall_pin2, INPUT);      //Pin initialization
   pinMode(hall_pin3, INPUT);      //Pin initialization
   pinMode(hall_pin4, INPUT);      //Pin initialization
-  pinMode(hall_pin5, INPUT);      //Pin initialization
+//  pinMode(hall_pin5, INPUT);  /    //Pin initialization
   attachInterrupt(digitalPinToInterrupt(hall_pin), wheel_left, RISING); //Interrupt initialization
   attachInterrupt(digitalPinToInterrupt(hall_pin2), wheel_right, RISING); //Interrupt initialization
   attachInterrupt(digitalPinToInterrupt(hall_pin3), wheel_centre, RISING); //Interrupt initialization
-  attachInterrupt(digitalPinToInterrupt(hall_pin4), crank, RISING); //Interrupt initialization
-  attachInterrupt(digitalPinToInterrupt(hall_pin5), gear_shaft, RISING); //Interrupt initialization
+//  attachInterrupt(digitalPinToInterrupt(hall_pin4),/ crank, RISING); //Interrupt initialization
+  attachInterrupt(digitalPinToInterrupt(hall_pin4), gear_shaft, RISING); //Interrupt initialization
   RPM_L_RA.clear();               // Clearing cache of the averaging for the left wheel 
   RPM_R_RA.clear();               // Clearing cache of the averaging for the right wheel
   RPM_C_RA.clear();               // Clearing cache of the averaging for the centre wheel
-  RPM_CRANK_RA.clear();           // Clearing cache of the averaging for the crank wheel
+//  RPM_CRANK_RA.clear();           // Clearing cache of the averaging for the crank wheel
   RPM_SHAFT_RA.clear();           // Clearing cache of the averaging for the crank wheel
-
-///////////////////////////////////////////TEMPERATURE SETUP/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
- 
-  // uint8_t rslt = 1;
-  // while(!Serial);
-  // rslt = bme.begin();
-  // Serial.println("BME WORKING");
-  // bme.startConvert();
-  // bme.update();
-
-///////////////////////////////////////////magnetometer/////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// //magnetometer
-//   mag.begin();
-//   mag.enableAutoRange(true);
-//   //accelerometer
-//   accel.begin();
 
 //  //////////////////////////////////////STEERING ANGLE SETUP/////////////////////////////////////////
 //  ////////////////////////////////////////////////////////////////////////////////////
@@ -290,22 +272,13 @@ void loop() {
      steering_angle_min=steering_angle;
    } ///capturing min value
    steering_angle_center=(steering_angle_max+steering_angle_min)/2; ////calculating center
-
-
-  
-  // sensors_event_t event; //declare event
-
-  // accel.getEvent(&event); //capture accelerometer data
     
   
   RPM_L = (60000000.00/(time_l*Magnet_Number));          // RPM left
   RPM_R = (60000000.00/(time_r*Magnet_Number));         // RPM Right
   RPM_C = (60000000.00/(time_c*Magnet_Number));        // RPM Centre
-  RPM_CRANK = (60000000.00/(time_cr*Magnet_Number));  //RPM Crank
+//  RPM_CRANK = (60000000.00/(time_cr*Magnet_Number));  //RPM Crank
   RPM_SHAFT = (60000000.00/(time_shaft*Magnet_Number));  //RPM Crank
-
-  //Calculates the cadence of crank 
-  //Cadence = (RPM_CRANK*wheel_circumference/16.6670)/(3.14*(diameter +(2 * tire_size)) * (chainring/cog))
 
   
   ///////////////////////////////////Adds value to running average/////////////////////////////////////////////////////////////////
@@ -313,7 +286,7 @@ void loop() {
   RPM_L_RA.addValue(RPM_L);             // Adds value to running average wheel left
   RPM_R_RA.addValue(RPM_R);            // Adds value to running average wheel right
   RPM_C_RA.addValue(RPM_C);           // Adds value to running average wheel centre
-  RPM_CRANK_RA.addValue(RPM_CRANK);  // Adds value to runing average wheel crank
+//  RPM_CRANK_RA.addValue(RPM_CRANK);  // Adds value to runing average wheel crank
   RPM_SHAFT_RA.addValue(RPM_SHAFT); 
   average_rpm = (RPM_L_RA.getAverage() + RPM_R_RA.getAverage() + RPM_C_RA.getAverage())/3;
 
@@ -441,16 +414,17 @@ void loop() {
 //    Serial.println(total_speed); // Printing total speed
 //    }
 
-    if(Serial2.available()>63){
+    if(Serial2.available()>0){
       command = Serial2.readStringUntil('\n');
       command.trim();
       if (command.equals("stop")) {
         Serial.print("stop");
         }
       }
-    if(Serial.available()>63 && !Serial2.available()>0){
+    if(Serial.available()>0 && !Serial2.available()>0){
       pi_data = Serial.readStringUntil('\n');
       pi_data.trim();
+      Serial.print(pi_data);
       delay(50);
       Serial2.print(pi_data);
       Serial2.println();

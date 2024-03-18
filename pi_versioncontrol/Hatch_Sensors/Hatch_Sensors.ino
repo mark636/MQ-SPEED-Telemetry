@@ -1,7 +1,7 @@
 
 //////////////////////////////////////////LIBRARIES/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+#include <Adafruit_GPS.h>
 #include <RunningAverage.h>
 #include <DFRobot_BME680_I2C.h>
 #include <Wire.h>
@@ -11,12 +11,35 @@
 #include <Adafruit_LIS2MDL.h>
 #include <AS5600.h>
 #define SERIAL_SIZE_TX  2048
+//#define GPSSerial Serial2
+//#define GPSECHO true
 
+// Connect to the GPS on the hardware port
+//Adafruit_GPS GPS(&GPSSerial);
 
 ////libraries stuff
 Adafruit_LIS2MDL mag = Adafruit_LIS2MDL(12345);
 Adafruit_LSM303_Accel_Unified accel = Adafruit_LSM303_Accel_Unified(54321);
-
+//
+/////////////GPS VALUES/////////
+//double GetDistance(double lat1, double lon1, double lat2,double lon2) { 
+//    double dLat = (lat2 - lat1) * (3.1415926/180);
+//    double dLon = (lon2 - lon1)  * (3.1415926/180);
+//    double a = (sin(dLat / 2.0) * sin(dLat / 2.0)) + (cos(lat1 *   (3.1415926/180)) * cos(lat2  * (3.1415926/180)) *sin(dLon / 2.0) * sin(dLon / 2.0));
+//    double c = 2.0 * atan2(sqrt(a), sqrt(1.0 - a));
+//    double R = 6371000.0; // Earth's radius in meters
+//    double distance = R * c; // Distance in meters
+//    return distance;
+//}
+//double convertToDecimalMin(double curReading){
+//  double a = curReading/100; 
+//  int modulus = static_cast<int>(a);
+//  double b = modulus *100;
+//  double DecMinutes = curReading - b; 
+//  double c = DecMinutes/60;
+//
+//  return modulus + c; 
+//}
 /////////////////////////STEERING ANGLE///////////////////////////////////////////////////
 
 AS5600 as5600; 
@@ -119,7 +142,13 @@ const int print_frequency = 5; //milliseconds between serial.print
 void setup() {
   Serial.begin(115000);
   Serial.setTxBufferSize(SERIAL_SIZE_TX);
-  //Serial2.begin(115200, SERIAL_8N1, 16, 17);
+//  //Serial2.begin(115200, SERIAL_8N1, 16, 17);
+//  GPS.begin(115200);
+//  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+//  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
+//  GPS.sendCommand(PGCMD_ANTENNA);
+//  delay(1000);
+//  GPSSerial.println(PMTK_Q_RELEASE);
 
 ///////////////////////////////////////////TEMPERATURE SETUP/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -130,30 +159,24 @@ void setup() {
    Serial.println("BME WORKING");
    bme.startConvert();
    bme.update();
-
+}
 ///////////////////////////////////////////magnetometer/////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// //magnetometer
-//   mag.begin();
-//   mag.enableAutoRange(true);
-//   //accelerometer
-//   accel.begin();
-
-//  //////////////////////////////////////STEERING ANGLE SETUP/////////////////////////////////////////
-//  ////////////////////////////////////////////////////////////////////////////////////
-
-// }
-}
 ///////////////////////////////////////////MAIN////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void loop() {
-  
+//   char c = GPS.read();
+//   if (GPSECHO)
+////    if (c) Serial.print(c);/
+//    if (GPS.newNMEAreceived()) {
+////    Serial.print(GPS.lastNMEA()); 
+//    if (!GPS.parse(GPS.lastNMEA())) 
+//      return; 
+//  }
 
-  
    sensors_event_t event; //declare event
-
    accel.getEvent(&event); //capture accelerometer data
 
      if(millis()-lastRead>1000){
@@ -179,6 +202,9 @@ void loop() {
   time_output = millis()-prev_output;
    if (time_output > print_frequency){
    prev_output = millis();
+   
+//   Serial.print("Fx: "); Serial.print((int)GPS.fix);
+//   if (GPS.fix) {
    Serial.print("'ax':");
    Serial.print(event.acceleration.x, 2); 
    Serial.print(",");
@@ -207,5 +233,47 @@ void loop() {
    Serial.print(",");
    Serial.print("'p':");
    Serial.println(Pressure, 2);
+//   Serial.print("la: ");
+//   Serial.print(GPS.latitude, 4); 
+//   Serial.print(", ");
+//   Serial.print("lo: ");
+//   Serial.print(GPS.longitude, 4);
+//   Serial.print(", ");
+//   double lat2 = 33.783516; // Destination latitude ----> // COME BACK AND REMEMBER TO CHANGE THIS MOTHER FUCKERS 
+//   double lon2 = 151.125982; // Destination longitude --> //  COME BACK AND REMEMBER TO CHANGE THIS MOTHER FUCKERS 
+//   double lat1 = convertToDecimalMin(GPS.latitude); // Current latitude
+//   double lon1 = convertToDecimalMin(GPS.longitude); // Current longitude
+//   double dist = GetDistance(lat1, lon1, lat2, lon2);
+//   Serial.print("df:");
+//   Serial.println(dist);
+//  } else{
+//   Serial.print("'ax':");
+//   Serial.print(event.acceleration.x, 2); 
+//   Serial.print(",");
+//   Serial.print("'ay':");
+//   Serial.print(event.acceleration.y, 2); 
+//   Serial.print(",");
+//   Serial.print("'az':");
+//   Serial.print(event.acceleration.z, 2); 
+//   Serial.print(",");
+//   //print magnetometer
+//   Serial.print("'vx':");
+//   Serial.print(event.magnetic.x, 2);
+//   Serial.print(","); 
+//   Serial.print("'vy':");
+//   Serial.print(event.magnetic.y, 2); 
+//   Serial.print(",");
+//   Serial.print("'vz':");
+//   Serial.print(event.magnetic.z, 2);
+//   Serial.print(",");
+//   //print environment
+//   Serial.print("'t':");
+//   Serial.print(Temperature, 2);
+//   Serial.print(",");
+//   Serial.print("'h':");
+//   Serial.print(Humidity, 2);
+//   Serial.print(",");
+//   Serial.print("'p':");
+//   Serial.println(Pressure, 2);
   }
 }

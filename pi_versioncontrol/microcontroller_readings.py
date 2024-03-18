@@ -42,13 +42,13 @@ class SensorDataProcessor:
 
         # initialize serial read and expected ports
         try: 
-            self.esphatch = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
+            self.esphatch = serial.Serial('/dev/ttyUSB1', 115200, timeout=1)
             self.esphatch.reset_input_buffer()
         except:
             self.esphatch = "none"
         
         try:
-            self.espbike = serial.Serial('/dev/ttyUSB1', 115200, timeout=1)
+            self.espbike = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
             self.espbike.reset_input_buffer()
         except:
             self.espbike = "none"
